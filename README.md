@@ -10,7 +10,7 @@ python3 main.py
 ## Explanation of steps
 Here are the steps I took to attain the final resulting vector:
 
-####Graphical method:
+<font size="3">Graphical Method</font> <br>
 1. `HTTP GET` Request to obtain historical price data for designated tickers.
 2. Start by obtaining the Covariance matrix, Mean vector and Volatility vector.
 3. Applied the following formulas:
@@ -20,7 +20,7 @@ Here are the steps I took to attain the final resulting vector:
 5. Plot the Mean Variance Frontier graph and obtained global minimum variance portfolio.
 6. Wrote to output file `Result.txt` 
 
-####Analytical method:
+ <font size="3">Analytical Method</font> <br>
 1. Same as above
 2. Same as above
 3. Applied the following formula:
