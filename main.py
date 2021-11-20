@@ -37,30 +37,33 @@ def __main__():
 
     df = pd.DataFrame(consolidated_ticker_data).T
     df.columns = tickers
-    df = df.pct_change()
-    mva(df)
+
+    # Just pass in the dataframe of percentage change
+    mva(df.pct_change())
 
 
 def mva(df):
-    # Covariance matrix of the assets. Should be n x n matrix
-    covariance_vector = df.cov()
-    sigma_list = []
-    miu_list = []
-    for x in df:
-        # For each ticker, multiply the daily varianace by 250 and sqrt it for sigma over entire period.
-        variance = df[x].var() * 250
-        sigma = np.sqrt(variance)
-        sigma_list.append(sigma)
+    # Covariance matrix of the assets
+    covariance_matrix = df.cov()
+    inverse_covariance_matrix = np.linalg.inv(covariance_matrix.values)
 
-        # Expected value of the rate of return
-        miu = df[x].mean()
-        miu_list.append(miu)
+    # Miu vector
+    miu_list = [df[x].mean() for x in df]
+    miu_vector = np.array(miu_list)
 
+    # ANALYTICAL METHOD: By GMVP Formula
+    ones = np.ones(len(tickers))
+
+    # a is placeholder for (1 * C-1 * 1)
+    a = np.matmul(np.matmul(ones.transpose(), inverse_covariance_matrix), ones)
+    weight_vector = (np.matmul(inverse_covariance_matrix, ones)) / a
+    print(weight_vector)
+
+    # GRAPHICAL METHOD: Graph of Mean Variance Frontier
     recorded_weights = []
     recorded_miu = []
     recorded_sigma = []
 
-    miu_vector = np.array(miu_list)
     for portfolio in range(10000):
         # Using np.random.random to generate random weights.
         randomized_weights = np.random.random(number_of_tickers)
@@ -74,15 +77,11 @@ def mva(df):
         # Portfolio variance = weight_vector_transpose * covariance_vector * weight_vector
         # Note that the covariance_vector is still in terms of daily variances+covariances.
         # Therefore, portfolio_volatility needs to be multiplied by sqrt(250)
-        portfolio_variance = np.matmul(np.matmul(weight_vector.transpose(), covariance_vector), weight_vector)
+        portfolio_variance = np.matmul(np.matmul(weight_vector.transpose(), covariance_matrix), weight_vector)
         portfolio_sigma = np.sqrt(portfolio_variance * 250)
         recorded_sigma.append(portfolio_sigma)
 
-    # Plotting of M.V Frontier
-    plt.scatter(recorded_sigma, recorded_miu)
-    plt.show()
-
-    # Minimum variance portfolio
+    # Getting the Global minimum variance portfolio
     results = pd.DataFrame(list(zip(recorded_miu, recorded_sigma)), columns=['Return', 'Risk'])
     index_of_lowest_risk_portfolio = results['Risk'].idxmin(axis=1)
     final_weights = recorded_weights[index_of_lowest_risk_portfolio]
@@ -93,14 +92,17 @@ def mva(df):
     for count, ticker in enumerate(tickers):
         print(f'{ticker}: {round(final_weights[count] * 100, 2)}% of portfolio')
 
-    # Write to output file
+    # Writing to output file
     with open('Results.txt', 'w') as file:
         output_dict = {}
         for count, ticker in enumerate(tickers):
             output_dict[ticker] = final_weights[count]
         file.write(json.dumps(output_dict))
 
+    # Plotting of M.V Frontier
+    plt.scatter(recorded_sigma, recorded_miu)
+    plt.show()
+
 
 if __name__ == '__main__':
     __main__()
-
