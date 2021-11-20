@@ -77,7 +77,7 @@ def mva(df):
         # Portfolio variance = weight_vector_transpose * covariance_vector * weight_vector
         # Note that the covariance_vector is still in terms of daily variances+covariances.
         # Therefore, portfolio_volatility needs to be multiplied by sqrt(250)
-        portfolio_variance = np.matmul(np.matmul(weight_vector.transpose(), covariance_matrix), weight_vector)
+        portfolio_variance = np.matmul(np.matmul(weight_vector.transpose(), covariance_matrix.values), weight_vector)
         portfolio_sigma = np.sqrt(portfolio_variance * 250)
         recorded_sigma.append(portfolio_sigma)
 
